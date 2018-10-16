@@ -6,6 +6,12 @@ import lightgbm as lgb
 from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import f1_score
 
+# 1. Feature Engineer:
+# read data into table, use tab to seperate
+# so the result table is the format as names present
+# refer to pandas.read_table()
+# train_data + vali_data is the input data
+# fill test_data's label=-1
 train_data = pd.read_table('./data/oppo_round1_train_20180929.txt',
         names= ['prefix','query_prediction','title','tag','label'], header= None, encoding='utf-8').astype(str)
 val_data = pd.read_table('./data/oppo_round1_vali_20180929.txt',
@@ -15,11 +21,15 @@ test_data = pd.read_table('./data/oppo_round1_test_A_20180929.txt',
 train_data = train_data[train_data['label'] != '音乐' ]
 test_data['label'] = -1
 
+# combine val_data and train_data into train_data
+# change label value into int
 train_data = pd.concat([train_data,val_data])
 train_data['label'] = train_data['label'].apply(lambda x: int(x))
 test_data['label'] = test_data['label'].apply(lambda x: int(x))
 items = ['prefix', 'title', 'tag']
 
+# process ['prefix', 'title', 'tag'] by order
+# TBD: GroupBy object
 for item in items:
     temp = train_data.groupby(item, as_index = False)['label'].agg({item+'_click':'sum', item+'_count':'count'})
     temp[item+'_ctr'] = temp[item+'_click']/(temp[item+'_count'])
